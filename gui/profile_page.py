@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from services import playlist_manager
+from services.spotify_auth import get_spotify_client
 
 class ProfilePage(QWidget):
     def __init__(self, go_back):
@@ -43,7 +43,8 @@ class ProfilePage(QWidget):
 
     def load_user_info(self):
         try:
-            user = playlist_manager.sp.current_user()
+            sp = get_spotify_client()
+            user = sp.current_user()
             name = user.get('display_name', 'Unknown')
             email = user.get('email', 'Unknown')
             followers = user.get('followers', {}).get('total', 0)

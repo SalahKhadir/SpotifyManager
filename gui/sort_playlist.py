@@ -2,6 +2,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QHBoxLayout, QComboBox
 from PyQt5.QtCore import Qt
 from services import playlist_manager
+from services.spotify_auth import get_spotify_client
 
 class SortPlaylistPage(QWidget):
     def __init__(self, go_back):
@@ -80,8 +81,9 @@ class SortPlaylistPage(QWidget):
         playlist_id = self.playlist_input.text().strip()
 
         try:
+            sp = get_spotify_client()
             # Get playlist info
-            playlist = playlist_manager.sp.playlist(playlist_id)
+            playlist = sp.playlist(playlist_id)
             name = playlist.get('name', '')
             images = playlist.get('images', [])
             self.playlist_name_label.setText(name)

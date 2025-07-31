@@ -7,6 +7,8 @@ from .delete_playlist import DeletePlaylistPage
 from .profile_page import ProfilePage
 from services.spotify_auth import get_spotify_client
 import requests
+import os
+import glob
 
 class MainWindow(QMainWindow):
     def __init__(self, go_back):
@@ -30,30 +32,65 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.delete_playlist)
         self.stack.addWidget(self.profile_page)
 
+        # Always try to load user profile when showing home
+        self.load_user_profile()
+
     def load_user_profile(self):
         try:
             sp = get_spotify_client()
             profile = sp.current_user()
+            if not profile or 'display_name' not in profile:
+                self.username_label.setText("Unknown User")
+                self.profile_pic.clear()
+                return
             self.username_label.setText(profile['display_name'] or "Unknown User")
 
             # Load profile image
-            if profile['images']:
+            if profile.get('images'):
                 img_url = profile['images'][0]['url']
                 img_data = requests.get(img_url).content
                 pixmap = QPixmap()
                 pixmap.loadFromData(img_data)
                 self.profile_pic.setPixmap(pixmap.scaled(80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        except:
+            else:
+                self.profile_pic.clear()
+        except Exception:
             self.username_label.setText("Unknown User")
+            self.profile_pic.clear()
 
     def return_home(self):
         self.stack.setCurrentWidget(self.home_widget)
+        self.load_user_profile()
 
     def create_home(self):
         widget = QWidget()
         layout = QVBoxLayout()
         layout.setContentsMargins(40, 40, 40, 40)
         layout.setSpacing(32)
+
+        # Top bar layout to add logout button on the top right
+        top_bar = QHBoxLayout()
+        top_bar.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+
+        logout_btn = QPushButton("Logout")
+        logout_btn.setFixedSize(120, 40)
+        logout_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #b3b3b3;
+                color: #121212;
+                font-weight: bold;
+                border-radius: 10px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #1db954;
+                color: white;
+            }
+        """)
+        logout_btn.clicked.connect(self.logout)
+        top_bar.addWidget(logout_btn)
+
+        layout.addLayout(top_bar)
 
         title = QLabel("Spotify Toolkit")
         title.setAlignment(Qt.AlignCenter)
@@ -110,3 +147,21 @@ class MainWindow(QMainWindow):
 
         widget.setLayout(layout)
         return widget
+
+    def logout(self):
+        # Delete all Spotify token cache files to log out properly
+        for cache_file in glob.glob(".cache-*"):
+            try:
+                os.remove(cache_file)
+            except Exception:
+                pass
+        if os.path.exists(".cache"):
+            try:
+                os.remove(".cache")
+            except Exception:
+                pass
+
+        print("✅ Logged out and cleared cache.")
+        self.username_label.setText("Unknown User")
+        self.profile_pic.clear()
+        self.go_back()  # call the go_back callback to return to AuthPage

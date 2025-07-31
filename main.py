@@ -10,7 +10,6 @@ class App(QStackedWidget):
         self.setWindowTitle("Spotify Toolkit")
         self.setGeometry(200, 100, 900, 980)
 
-        # Pages
         self.auth_page = AuthPage(self.goto_home)
         self.home_page = MainWindow(self.goto_auth)
 
@@ -20,7 +19,6 @@ class App(QStackedWidget):
         self.setCurrentWidget(self.auth_page)
 
     def goto_home(self):
-        self.home_page.load_user_profile()
         self.setCurrentWidget(self.home_page)
 
     def goto_auth(self):
