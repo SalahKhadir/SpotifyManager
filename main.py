@@ -1,28 +1,33 @@
-from gui.main_window import MainWindow
-from gui.auth_page import AuthPage
+# main.py
 from PyQt5.QtWidgets import QApplication, QStackedWidget
+from gui.auth_page import AuthPage
+from gui.main_window import MainWindow
 import sys
-import os
 
-def main():
-    app = QApplication(sys.argv)
-    app.setStyle("Fusion")
-    stack = QStackedWidget()
-    stack.setFixedSize(1280, 720)
+class App(QStackedWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Spotify Toolkit")
+        self.setGeometry(200, 100, 900, 980)
 
-    def on_auth(client_id, client_secret):
-        os.environ["SPOTIPY_CLIENT_ID"] = client_id
-        os.environ["SPOTIPY_CLIENT_SECRET"] = client_secret
-        stack.removeWidget(auth_page)
-        main_window = MainWindow()
-        stack.addWidget(main_window)
-        stack.setCurrentWidget(main_window)
+        # Pages
+        self.auth_page = AuthPage(self.goto_home)
+        self.home_page = MainWindow(self.goto_auth)
 
-    auth_page = AuthPage(on_auth)
-    stack.addWidget(auth_page)
-    stack.setCurrentWidget(auth_page)
-    stack.show()
-    sys.exit(app.exec_())
+        self.addWidget(self.auth_page)
+        self.addWidget(self.home_page)
+
+        self.setCurrentWidget(self.auth_page)
+
+    def goto_home(self):
+        self.home_page.load_user_profile()
+        self.setCurrentWidget(self.home_page)
+
+    def goto_auth(self):
+        self.setCurrentWidget(self.auth_page)
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    window = App()
+    window.show()
+    sys.exit(app.exec_())
