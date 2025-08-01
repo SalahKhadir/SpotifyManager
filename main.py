@@ -8,7 +8,7 @@ class App(QStackedWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Spotify Toolkit")
-        self.setGeometry(200, 100, 900, 980)
+        self.setGeometry(200, 100, 950, 1000)
 
         self.auth_page = AuthPage(self.goto_home)
         self.home_page = MainWindow(self.goto_auth)
